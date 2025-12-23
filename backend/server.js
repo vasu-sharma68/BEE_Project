@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
 module.exports.io = io;
 
 // Schedule task reminders daily at 1:37 PM
-cron.schedule('37 13 * * *', () => {
+cron.schedule('00 21 * * *', () => {
   console.log('Sending task reminders...');
   sendTaskReminders();
 });
