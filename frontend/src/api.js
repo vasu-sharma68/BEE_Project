@@ -75,4 +75,9 @@ export const folderAPI = {
     api.delete(`/folders/${folderId}/share/${userId}`),
 };
 
+export const statsAPI = {
+  getPersonal: () => api.get('/stats/personal'),
+  getFolders: () => api.get('/stats/folders'),
+};
+
 export default api;

@@ -5,6 +5,7 @@ import CalendarView from './components/CalendarView';
 import AccountSettings from './components/AccountSettings';
 import Login from './components/Login';
 import Register from './components/Register';
+import StatsPage from './components/StatsPage';
 import { folderAPI } from './api';
 import './styles/App.css';
 import checklistIcon from './components/checklist.png';
@@ -156,6 +157,7 @@ function App() {
         selectedFolder={selectedFolder}
         onSelectFolder={setSelectedFolder}
         onRefresh={loadFolders}
+        onNavigate={setCurrentView}
       />
 
       <div className="main-content">
@@ -247,6 +249,12 @@ function App() {
               Calendar
             </button>
             <button
+              className={`tab-btn ${currentView === 'stats' ? 'active' : ''}`}
+              onClick={() => setCurrentView('stats')}
+            >
+              Stats
+            </button>
+            <button
               className={`tab-btn ${currentView === 'account' ? 'active' : ''}`}
               onClick={() => setCurrentView('account')}
             >
@@ -268,6 +276,9 @@ function App() {
               initialDate={dateToViewInCalendar} 
               onTaskClick={handleTaskClickInCalendar}
             />
+          )}
+          {currentView === 'stats' && (
+            <StatsPage />
           )}
           {currentView === 'account' && (
             <AccountSettings onLogout={handleLogout} />

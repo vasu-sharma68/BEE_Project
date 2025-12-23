@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cron = require('node-cron');
+const { sendTaskReminders } = require('./services/emailService');
 
 const app = express();
 
@@ -12,17 +14,36 @@ app.use(express.json());
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => {
+    console.log('MongoDB connected');
+
+    // Schedule task reminders only after DB connection is established
+    cron.schedule('37 13 * * *', () => {
+      console.log('Sending task reminders...');
+      sendTaskReminders();
+    });
+  })
   .catch((err) => console.log('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/folders', require('./routes/folders'));
+app.use('/api/stats', require('./routes/stats'));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
+});
+
+// Manual trigger for task reminders
+app.get('/api/send-reminders', async (req, res) => {
+  try {
+    await sendTaskReminders();
+    res.json({ message: 'Task reminders sent successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to send reminders' });
+  }
 });
 
 // Error handling middleware
@@ -58,6 +79,12 @@ io.on('connection', (socket) => {
 
 // Export io for controllers
 module.exports.io = io;
+
+// Schedule task reminders daily at 1:37 PM
+cron.schedule('37 13 * * *', () => {
+  console.log('Sending task reminders...');
+  sendTaskReminders();
+});
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

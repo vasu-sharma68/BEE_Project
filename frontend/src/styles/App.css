@@ -400,6 +400,103 @@ code {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Stats styles */
+.stats-page {
+  display: flex;
+  gap: 18px;
+  padding: 14px;
+  align-items: flex-start;
+}
+
+
+/* Removed sparkline svg - keep progress bar styling */
+
+.progress-bar {
+  height: 10px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.kpi-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 60px;
+}
+
+.stat-card {
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.stats-column {
+  padding: 14px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .stats-page { flex-direction: column; }
+  .stats-column { width: 100%; }
+}
+
+.stats-column {
+  flex: 1;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px var(--shadow-color);
+}
+
+.stat-card, .folder-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.stat-card h3 {
+  margin-bottom: 8px;
+  color: var(--text-tertiary);
+}
+
+.folder-card {
+  padding: 14px;
+}
+
+.folder-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--text-secondary);
+}
+
+.folder-name {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.folder-summary {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .btn-primary {
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
   color: white;
