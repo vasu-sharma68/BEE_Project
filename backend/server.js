@@ -15,7 +15,7 @@ const app = express();
 ========================= */
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://your-frontend-domain.vercel.app" // 🔴 CHANGE THIS
+  "https://beeproject-nine.vercel.app" // 🔴 CHANGE THIS
 ];
 
 app.use(cors({
