@@ -3,40 +3,46 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cron = require('node-cron');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const { sendTaskReminders } = require('./services/emailService');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+/* =========================
+   CORS CONFIG (VERY IMPORTANT)
+========================= */
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://your-frontend-domain.vercel.app" // 🔴 CHANGE THIS
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
 app.use(express.json());
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB connected');
-
-    // Schedule task reminders only after DB connection is established
-    cron.schedule('37 13 * * *', () => {
-      console.log('Sending task reminders...');
-      sendTaskReminders();
-    });
-  })
-  .catch((err) => console.log('MongoDB connection error:', err));
-
-// Routes
+/* =========================
+   ROUTES
+========================= */
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/folders', require('./routes/folders'));
 app.use('/api/stats', require('./routes/stats'));
 
-// Health check
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get('/api/health', (req, res) => {
-  res.json({ message: 'Server is running' });
+  res.status(200).json({ message: 'Server is running 🚀' });
 });
 
-// Manual trigger for task reminders
+/* =========================
+   MANUAL EMAIL TRIGGER
+========================= */
 app.get('/api/send-reminders', async (req, res) => {
   try {
     await sendTaskReminders();
@@ -46,46 +52,70 @@ app.get('/api/send-reminders', async (req, res) => {
   }
 });
 
-// Error handling middleware
+/* =========================
+   ERROR HANDLER
+========================= */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+/* =========================
+   DATABASE CONNECTION
+========================= */
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('MongoDB connected');
+
+    // Run cron ONLY after DB is connected
+    cron.schedule('00 21 * * *', () => {
+      console.log('Sending task reminders...');
+      sendTaskReminders();
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+
+/* =========================
+   SERVER + SOCKET.IO
+========================= */
 const PORT = process.env.PORT || 5000;
-const server = require('http').createServer(app);
-const io = require('socket.io')(server, {
+const server = http.createServer(app);
+
+const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Allow requests from your frontend
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-// Socket.IO event handling
 io.on('connection', (socket) => {
-  console.log('A user connected');
+  console.log('User connected:', socket.id);
+
   socket.on('joinFolder', (folderId) => {
     socket.join(folderId);
     console.log(`User joined folder: ${folderId}`);
   });
+
   socket.on('leaveFolder', (folderId) => {
     socket.leave(folderId);
     console.log(`User left folder: ${folderId}`);
   });
+
   socket.on('disconnect', () => {
-    console.log('User disconnected');
+    console.log('User disconnected:', socket.id);
   });
 });
 
-// Export io for controllers
+// Export io if controllers need it
 module.exports.io = io;
 
-// Schedule task reminders daily at 1:37 PM
-cron.schedule('00 21 * * *', () => {
-  console.log('Sending task reminders...');
-  sendTaskReminders();
-});
-
+/* =========================
+   START SERVER
+========================= */
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
